@@ -3,9 +3,9 @@ package entities
 import "net/http"
 
 type Item struct {
-	ID int
-	Name string
-	Price float64
+	ID int 
+	Name string 
+	Description string 
 }
 
 func (a *Item) Bind(r *http.Request) error {

@@ -7,4 +7,9 @@ require (
 	github.com/go-chi/render v1.0.3
 )
 
-require github.com/ajg/form v1.5.1 // indirect
+require (
+	github.com/ajg/form v1.5.1 // indirect
+	github.com/joho/godotenv v1.5.1
+	github.com/lib/pq v1.10.9 // indirect
+	github.com/mitchellh/mapstructure v1.5.0 // indirect
+)

@@ -1,35 +1,47 @@
 package item
 
 import (
+	"database/sql"
+	"fmt"
+	"go-api/core"
 	"go-api/internal/entities"
+	"net/http"
+	_ "github.com/lib/pq"
 )
 
-var MockItems = []entities.Item{
-	{ID: 1, Name: "Item 1", Price: 100},
-	{ID: 2, Name: "Item 2", Price: 200},
-}
+const (
+    host     = "localhost"
+    port     = 5432
+    user     = "postgres"
+    password = "postgres"
+    dbname   = "postgres"
+)
 
-type DatabaseInterface interface {
-	SetupDatabases() error
-	GetItemList() ([]entities.Item, error)
-}
-
-type MockItemDatabase struct {
-}
-
-func (d *MockItemDatabase) SetupDatabases() error {
-	return nil
-}
-
-func (d *MockItemDatabase) GetItemList() ([]entities.Item, error) {
-	return MockItems, nil
-}
-
-func NewDatabase() (*DatabaseInterface, error) {
-	var db DatabaseInterface = &MockItemDatabase{}
-	var err error = db.SetupDatabases()
+func GetItemList() ([]entities.Item, *entities.Error) {
+	var items []entities.Item
+	psqlconn := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable", host, port, user, password, dbname)
+	db, err := sql.Open("postgres", psqlconn)
 	if err != nil {
-		return nil, err
+		return items, core.CreateError(http.StatusInternalServerError, err.Error())
 	}
-	return &db, nil
+	queryString := `SELECT * FROM item.item`
+    rows, err := db.Query(queryString)
+	if err != nil {
+		return items, core.CreateError(http.StatusBadRequest, err.Error())
+	}
+	cols, _ := rows.Columns()
+	maps, err := core.DatabaseMapping(rows, cols)
+	if err != nil {
+		return items, core.CreateError(http.StatusInternalServerError, err.Error())
+	}
+	if err := rows.Err(); err != nil {
+		return items, core.CreateError(http.StatusInternalServerError, err.Error())
+	}
+	err = core.StructMapping(maps, &items)
+	if err != nil {
+		return items, core.CreateError(http.StatusInternalServerError, err.Error())
+	}
+	defer rows.Close()
+	defer db.Close()
+	return items, nil
 }

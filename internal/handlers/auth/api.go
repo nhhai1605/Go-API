@@ -10,19 +10,14 @@ import (
 
 func Login(w http.ResponseWriter, r *http.Request) {
 	params := &entities.LoginRequest{}
-	err := render.Bind(r, params);
-	if  err != nil {
-		render.Render(w, r, core.ErrInvalidRequest(err))
+	
+	if  err := render.Bind(r, params); err != nil {
+		render.Render(w, r, core.ErrRender(*core.CreateError(http.StatusBadRequest, "Invalid request payload")))
 		return
 	}
-	db, err := auth.NewDatabase()
+	token, err := auth.GetToken(*params)
 	if err != nil {
-		render.Render(w, r, core.ErrRender(err))
-		return
-	}
-	token, err := (*db).GetToken(*params)
-	if err != nil {
-		render.Render(w, r, core.ErrUnauthorized(err))
+		render.Render(w, r, core.ErrRender(*err))
 		return
 	}
 	render.JSON(w, r, map[string]string{"token": token})
