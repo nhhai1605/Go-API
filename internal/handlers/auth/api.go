@@ -1,14 +1,28 @@
 package auth
 
 import (
+	"go-api/core"
 	"go-api/internal/databases/auth"
 	"net/http"
+	"github.com/go-chi/render"
 )
 
 func Login(w http.ResponseWriter, r *http.Request) {
 	params := &auth.LoginRequest{}
-	
-	//get the request body from POST
-	//parse the request body into the params struct
-
+	err := render.Bind(r, params);
+	if  err != nil {
+		render.Render(w, r, core.ErrInvalidRequest(err))
+		return
+	}
+	db, err := auth.NewDatabase()
+	if err != nil {
+		render.Render(w, r, core.ErrRender(err))
+		return
+	}
+	token, err := (*db).GetToken(*params)
+	if err != nil {
+		render.Render(w, r, core.ErrUnauthorized(err))
+		return
+	}
+	render.JSON(w, r, map[string]string{"token": token})
 }

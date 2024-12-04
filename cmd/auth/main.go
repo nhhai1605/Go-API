@@ -7,6 +7,7 @@ import (
 	"time"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	"github.com/go-chi/render"
 )
 
 func main() {
@@ -14,6 +15,7 @@ func main() {
 	r.Use(middleware.Logger)
 	r.Use(middleware.StripSlashes)
 	r.Use(middleware.Timeout(60 * time.Second))
+	r.Use(render.SetContentType(render.ContentTypeJSON))
 
 	// Routes
 	r.Route("/auth", func(r chi.Router) {

@@ -1,8 +1,8 @@
 package core
 
 import (
-	"encoding/json"
 	"net/http"
+	"github.com/go-chi/render"
 )
 
 type Error struct
@@ -10,22 +10,28 @@ type Error struct
 	Code int
 	Message string
 }
-
-func writeError(w http.ResponseWriter, code int, message string) {
-	err := Error{Code: code, Message: message}
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(err.Code)
-	json.NewEncoder(w).Encode(err)
+func (e *Error) Render(w http.ResponseWriter, r *http.Request) error {
+	render.Status(r, e.Code)
+	return nil
 }
 
-var (
-	NotFoundHandle = func(w http.ResponseWriter) {
-		writeError(w, http.StatusNotFound, "Not Found")
+func ErrInvalidRequest(err error) render.Renderer {
+	return &Error{
+		Code: http.StatusBadRequest,
+		Message: err.Error(),
 	}
-	InternalErrorHandle = func(w http.ResponseWriter, message string) {
-		writeError(w, http.StatusInternalServerError, message)
+}
+
+func ErrRender(err error) render.Renderer {
+	return &Error{
+		Code: http.StatusInternalServerError,
+		Message: err.Error(),
 	}
-	UnauthorizedHandle = func(w http.ResponseWriter) {
-		writeError(w, http.StatusUnauthorized, "Unauthorized")
+}
+
+func ErrUnauthorized(err error) render.Renderer {
+	return &Error{
+		Code: http.StatusUnauthorized,
+		Message: err.Error(),
 	}
-)
+}

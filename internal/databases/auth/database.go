@@ -2,13 +2,16 @@ package auth
 
 import (
 	"errors"
+	"net/http"
 )
 
 type LoginRequest struct {
 	Username string
 	Password string
 }
-
+func (a *LoginRequest) Bind(r *http.Request) error {
+	return nil
+}
 var mockTokens = map[LoginRequest]string{
 	{Username: "user1", Password: "password1"}: "token1",
 	{Username: "user2", Password: "password2"}: "token2",
@@ -16,7 +19,7 @@ var mockTokens = map[LoginRequest]string{
 
 type DatabaseInterface interface {
 	SetupDatabases() error
-	GetToken(username string, password string) (string, error)
+	GetToken(loginRequest LoginRequest) (string, error)
 }
 
 type MockDatabase struct {
@@ -26,10 +29,9 @@ func (d *MockDatabase) SetupDatabases() error {
 	return nil
 }
 
-func (d *MockDatabase) GetToken(username string, password string) (string, error) {
+func (d *MockDatabase) GetToken(loginRequest LoginRequest) (string, error) {
 	var token string = ""
-	request := LoginRequest{Username: username, Password: password}
-	token, ok := mockTokens[request]
+	token, ok := mockTokens[loginRequest]
 	if !ok {
 		return "", errors.New("Invalid username or password")
 	}
