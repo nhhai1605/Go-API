@@ -1,37 +1,32 @@
 package core
 
 import (
+	"go-api/internal/entities"
 	"net/http"
 	"github.com/go-chi/render"
 )
 
-type Error struct
-{
-	Code int
-	Message string
-}
-func (e *Error) Render(w http.ResponseWriter, r *http.Request) error {
-	render.Status(r, e.Code)
-	return nil
-}
-
 func ErrInvalidRequest(err error) render.Renderer {
-	return &Error{
+	return &entities.Error{
 		Code: http.StatusBadRequest,
 		Message: err.Error(),
 	}
 }
 
 func ErrRender(err error) render.Renderer {
-	return &Error{
+	return &entities.Error{
 		Code: http.StatusInternalServerError,
 		Message: err.Error(),
 	}
 }
 
 func ErrUnauthorized(err error) render.Renderer {
-	return &Error{
+	errorMessage := "Unauthorized"
+	if(err != nil) {
+		errorMessage = err.Error()
+	}
+	return &entities.Error{
 		Code: http.StatusUnauthorized,
-		Message: err.Error(),
+		Message: errorMessage,
 	}
 }

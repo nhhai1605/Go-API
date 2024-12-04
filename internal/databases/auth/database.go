@@ -2,36 +2,31 @@ package auth
 
 import (
 	"errors"
-	"net/http"
+	"go-api/internal/entities"
 )
 
-type LoginRequest struct {
-	Username string
-	Password string
-}
-func (a *LoginRequest) Bind(r *http.Request) error {
-	return nil
-}
-var mockTokens = map[LoginRequest]string{
+
+var MockTokens = map[entities.LoginRequest]string{
 	{Username: "user1", Password: "password1"}: "token1",
 	{Username: "user2", Password: "password2"}: "token2",
 }
 
+
 type DatabaseInterface interface {
 	SetupDatabases() error
-	GetToken(loginRequest LoginRequest) (string, error)
+	GetToken(loginRequest entities.LoginRequest) (string, error)
 }
 
-type MockDatabase struct {
+type MockAuthDatabase struct {
 }
 
-func (d *MockDatabase) SetupDatabases() error {
+func (d *MockAuthDatabase) SetupDatabases() error {
 	return nil
 }
 
-func (d *MockDatabase) GetToken(loginRequest LoginRequest) (string, error) {
+func (d *MockAuthDatabase) GetToken(loginRequest entities.LoginRequest) (string, error) {
 	var token string = ""
-	token, ok := mockTokens[loginRequest]
+	token, ok := MockTokens[loginRequest]
 	if !ok {
 		return "", errors.New("Invalid username or password")
 	}
@@ -39,7 +34,7 @@ func (d *MockDatabase) GetToken(loginRequest LoginRequest) (string, error) {
 }
 
 func NewDatabase() (*DatabaseInterface, error) {
-	var db DatabaseInterface = &MockDatabase{}
+	var db DatabaseInterface = &MockAuthDatabase{}
 	var err error = db.SetupDatabases()
 	if err != nil {
 		return nil, err
